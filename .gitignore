@@ -1,5 +1,12 @@
-.env
+
 __pycache__/
 *.pyc
 venv/
+.venv/
+env/
+.env
 .vscode/
+.idea/
+*.db
+*.log
+db_laundry_app
