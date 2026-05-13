@@ -69,6 +69,31 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
     return user
 
+@app.put("/users/{user_id}",
+         response_model=schemas.UserOut)
+def update_user(
+    user_id: int,
+    user: schemas.UserUpdate,
+    db: Session = Depends(get_db)
+):
+
+    return crud.update_user(
+        db,
+        user_id,
+        user
+    )
+
+@app.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return crud.delete_user(
+        db,
+        user_id
+    )
+
 
 @app.post("/users/", response_model=schemas.UserOut)
 def create_user(
@@ -142,6 +167,31 @@ def create_category(
     db: Session = Depends(get_db)
 ):
     return crud.create_category(db, category)
+
+@app.put("/categories/{category_id}",
+         response_model=schemas.CategoryOut)
+def update_category(
+    category_id: int,
+    category: schemas.CategoryCreate,
+    db: Session = Depends(get_db)
+):
+
+    return crud.update_category(
+        db,
+        category_id,
+        category
+    )
+
+@app.delete("/categories/{category_id}")
+def delete_category(
+    category_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return crud.delete_category(
+        db,
+        category_id
+    )
 
 
 # =========================================
@@ -294,6 +344,32 @@ def create_payment(
 ):
     return crud.create_payment(db, payment)
 
+@app.put("/payments/{payment_id}",
+         response_model=schemas.PaymentOut)
+def update_payment(
+    payment_id: int,
+    payment: schemas.PaymentCreate,
+    db: Session = Depends(get_db)
+):
+
+    return crud.update_payment(
+        db,
+        payment_id,
+        payment
+    )
+
+
+@app.delete("/payments/{payment_id}")
+def delete_payment(
+    payment_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return crud.delete_payment(
+        db,
+        payment_id
+    )
+
 
 # =========================================
 # EXPENSES ENDPOINT
@@ -312,6 +388,32 @@ def create_expense(
     db: Session = Depends(get_db)
 ):
     return crud.create_expense(db, expense)
+
+@app.put("/expenses/{expense_id}",
+         response_model=schemas.ExpenseOut)
+def update_expense(
+    expense_id: int,
+    expense: schemas.ExpenseCreate,
+    db: Session = Depends(get_db)
+):
+
+    return crud.update_expense(
+        db,
+        expense_id,
+        expense
+    )
+
+
+@app.delete("/expenses/{expense_id}")
+def delete_expense(
+    expense_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return crud.delete_expense(
+        db,
+        expense_id
+    )
 
 
 # =========================================
@@ -333,4 +435,30 @@ def create_notification(
     return crud.create_notification(
         db,
         notification
+    )
+
+@app.put("/notifications/{notification_id}",
+         response_model=schemas.NotificationOut)
+def update_notification(
+    notification_id: int,
+    notification: schemas.NotificationCreate,
+    db: Session = Depends(get_db)
+):
+
+    return crud.update_notification(
+        db,
+        notification_id,
+        notification
+    )
+
+
+@app.delete("/notifications/{notification_id}")
+def delete_notification(
+    notification_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return crud.delete_notification(
+        db,
+        notification_id
     )

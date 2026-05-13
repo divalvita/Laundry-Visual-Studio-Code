@@ -43,6 +43,29 @@ def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
 
     return db_user
 
+def update_user(
+    db: Session,
+    user_id: int,
+    user: schemas.UserUpdate
+):
+
+    db_user = get_user_by_id(db, user_id)
+
+    if not db_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User tidak ditemukan"
+        )
+
+    db_user.name = user.name
+    db_user.email = user.email
+    db_user.role = user.role
+
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user
+
 
 def delete_user(db: Session, user_id: int):
 
@@ -145,6 +168,50 @@ def create_category(db: Session, category: schemas.CategoryCreate):
     db.refresh(db_category)
 
     return db_category
+def update_category(
+    db: Session,
+    category_id: int,
+    category: schemas.CategoryCreate
+):
+
+    db_category = db.query(models.Category).filter(
+        models.Category.id == category_id
+    ).first()
+
+    if not db_category:
+        raise HTTPException(
+            status_code=404,
+            detail="Category tidak ditemukan"
+        )
+
+    db_category.category_name = category.category_name
+    db_category.description = category.description
+
+    db.commit()
+    db.refresh(db_category)
+
+    return db_category
+def delete_category(
+    db: Session,
+    category_id: int
+):
+
+    db_category = db.query(models.Category).filter(
+        models.Category.id == category_id
+    ).first()
+
+    if not db_category:
+        raise HTTPException(
+            status_code=404,
+            detail="Category tidak ditemukan"
+        )
+
+    db.delete(db_category)
+    db.commit()
+
+    return {
+        "message": "Category berhasil dihapus"
+    }
 
 
 # =====================================================
@@ -394,6 +461,71 @@ def create_payment(db: Session, payment: schemas.PaymentCreate):
     return db_payment
 
 
+def update_payment(
+    db: Session,
+    payment_id: int,
+    payment: schemas.PaymentCreate
+):
+
+    db_payment = db.query(models.Payment).filter(
+        models.Payment.id == payment_id
+    ).first()
+
+    if not db_payment:
+        raise HTTPException(
+            status_code=404,
+            detail="Payment tidak ditemukan"
+        )
+
+    order = db.query(models.Order).filter(
+        models.Order.id == payment.order_id
+    ).first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order tidak ditemukan"
+        )
+
+    if payment.amount_paid < order.total_price:
+        payment_status = "unpaid"
+    else:
+        payment_status = "paid"
+
+    db_payment.order_id = payment.order_id
+    db_payment.payment_method = payment.payment_method
+    db_payment.amount_paid = payment.amount_paid
+    db_payment.payment_status = payment_status
+
+    db.commit()
+    db.refresh(db_payment)
+
+    return db_payment
+
+
+def delete_payment(
+    db: Session,
+    payment_id: int
+):
+
+    db_payment = db.query(models.Payment).filter(
+        models.Payment.id == payment_id
+    ).first()
+
+    if not db_payment:
+        raise HTTPException(
+            status_code=404,
+            detail="Payment tidak ditemukan"
+        )
+
+    db.delete(db_payment)
+    db.commit()
+
+    return {
+        "message": "Payment berhasil dihapus"
+    }
+
+
 # =====================================================
 # EXPENSE CRUD
 # =====================================================
@@ -416,6 +548,56 @@ def create_expense(db: Session, expense: schemas.ExpenseCreate):
     db.refresh(db_expense)
 
     return db_expense
+
+def update_expense(
+    db: Session,
+    expense_id: int,
+    expense: schemas.ExpenseCreate
+):
+
+    db_expense = db.query(models.Expense).filter(
+        models.Expense.id == expense_id
+    ).first()
+
+    if not db_expense:
+        raise HTTPException(
+            status_code=404,
+            detail="Expense tidak ditemukan"
+        )
+
+    db_expense.item_name = expense.item_name
+    db_expense.amount = expense.amount
+    db_expense.category = expense.category
+    db_expense.date = expense.date
+
+    db.commit()
+    db.refresh(db_expense)
+
+    return db_expense
+
+
+def delete_expense(
+    db: Session,
+    expense_id: int
+):
+
+    db_expense = db.query(models.Expense).filter(
+        models.Expense.id == expense_id
+    ).first()
+
+    if not db_expense:
+        raise HTTPException(
+            status_code=404,
+            detail="Expense tidak ditemukan"
+        )
+
+    db.delete(db_expense)
+    db.commit()
+
+    return {
+        "message": "Expense berhasil dihapus"
+    }
+
 
 
 # =====================================================
@@ -453,3 +635,51 @@ def create_notification(
     db.refresh(db_notification)
 
     return db_notification
+
+def update_notification(
+    db: Session,
+    notification_id: int,
+    notification: schemas.NotificationCreate
+):
+
+    db_notification = db.query(models.Notification).filter(
+        models.Notification.id == notification_id
+    ).first()
+
+    if not db_notification:
+        raise HTTPException(
+            status_code=404,
+            detail="Notification tidak ditemukan"
+        )
+
+    db_notification.customer_id = notification.customer_id
+    db_notification.title = notification.title
+    db_notification.message = notification.message
+
+    db.commit()
+    db.refresh(db_notification)
+
+    return db_notification
+
+
+def delete_notification(
+    db: Session,
+    notification_id: int
+):
+
+    db_notification = db.query(models.Notification).filter(
+        models.Notification.id == notification_id
+    ).first()
+
+    if not db_notification:
+        raise HTTPException(
+            status_code=404,
+            detail="Notification tidak ditemukan"
+        )
+
+    db.delete(db_notification)
+    db.commit()
+
+    return {
+        "message": "Notification berhasil dihapus"
+    }
