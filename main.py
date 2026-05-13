@@ -462,3 +462,13 @@ def delete_notification(
         db,
         notification_id
     )
+
+# =========================================
+# DASHBOARD ENDPOINT
+# =========================================
+
+@app.get("/dashboard/",
+         response_model=schemas.DashboardStats)
+def get_dashboard(db: Session = Depends(get_db)):
+
+    return crud.get_dashboard_stats(db)
