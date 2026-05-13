@@ -22,7 +22,11 @@ class UserOut(UserBase):
     class Config:
         orm_mode = True
 
-
+class UserUpdate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    role: str
 # =========================
 # CUSTOMERS SCHEMA
 # =========================
