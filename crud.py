@@ -683,3 +683,47 @@ def delete_notification(
     return {
         "message": "Notification berhasil dihapus"
     }
+
+# =====================================================
+# DASHBOARD CRUD
+# =====================================================
+
+def get_dashboard_stats(db: Session):
+
+    total_orders = db.query(models.Order).count()
+
+    active_orders = db.query(models.Order).filter(
+        models.Order.status.in_(["pending", "processing"])
+    ).count()
+
+    # ==========================
+    # TOTAL INCOME
+    # ==========================
+
+    payments = db.query(models.Payment).filter(
+        models.Payment.payment_status == "paid"
+    ).all()
+
+    total_income = sum(payment.amount_paid for payment in payments)
+
+    # ==========================
+    # TOTAL EXPENSE
+    # ==========================
+
+    expenses = db.query(models.Expense).all()
+
+    total_expense = sum(expense.amount for expense in expenses)
+
+    # ==========================
+    # TOTAL PROFIT
+    # ==========================
+
+    total_profit = total_income - total_expense
+
+    return {
+        "total_orders": total_orders,
+        "active_orders": active_orders,
+        "total_income": total_income,
+        "total_expense": total_expense,
+        "total_profit": total_profit
+    }

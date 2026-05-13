@@ -2,6 +2,18 @@ from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 
 
+# =========================================
+# DASHBOARD SCHEMA
+# =========================================
+
+class DashboardStats(BaseModel):
+    total_orders: int
+    active_orders: int
+    total_income: int
+    total_expense: int
+    total_profit: int
+
+    
 # =========================
 # USERS SCHEMA
 # =========================
