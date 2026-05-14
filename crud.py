@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import func
 
 import models
 import schemas
@@ -345,7 +346,7 @@ def create_order(
         service_id=order.service_id,
         weight=order.weight,
         total_price=int(total_price),
-        status="pending",
+        status="processing", 
         order_date=str(datetime.now())
     )
 
@@ -354,7 +355,6 @@ def create_order(
     db.refresh(db_order)
 
     return db_order
-
 
 def update_order_status(
     db: Session,
@@ -689,41 +689,79 @@ def delete_notification(
 # =====================================================
 
 def get_dashboard_stats(db: Session):
+    try:
+        # 1. Hitung Status Order (Gunakan count langsung)
+        active_orders = db.query(models.Order).filter(
+            models.Order.status.in_(["pending", "processing"])
+        ).count()
 
-    total_orders = db.query(models.Order).count()
+        done_orders = db.query(models.Order).filter(
+            models.Order.status == "done"
+        ).count()
 
-    active_orders = db.query(models.Order).filter(
-        models.Order.status.in_(["pending", "processing"])
-    ).count()
+        taken_orders = db.query(models.Order).filter(
+            models.Order.status == "taken"
+        ).count()
 
-    # ==========================
-    # TOTAL INCOME
-    # ==========================
+        total_orders = db.query(models.Order).count()
 
-    payments = db.query(models.Payment).filter(
-        models.Payment.payment_status == "paid"
-    ).all()
+        # 2. Hitung Income & Expense (Gunakan func.sum agar aman jika data NULL)
+        # .scalar() or 0 memastikan jika database kosong, hasilnya angka 0, bukan None
+        total_income = db.query(func.sum(models.Payment.amount_paid)).filter(
+            models.Payment.payment_status == "paid"
+        ).scalar() or 0
 
-    total_income = sum(payment.amount_paid for payment in payments)
+        total_expense = db.query(func.sum(models.Expense.amount)).scalar() or 0
 
-    # ==========================
-    # TOTAL EXPENSE
-    # ==========================
+        # 3. Omzet Mingguan (Gunakan func.date untuk MySQL)
+        weekly = []
+        today = datetime.now().date()
+        for i in range(6, -1, -1):
+            day = today - timedelta(days=i)
+            # Perbaikan: Menggunakan func.date() karena MySQL lebih stabil dibanding .like()
+            day_income = db.query(func.sum(models.Payment.amount_paid)).filter(
+                models.Payment.payment_status == "paid",
+                func.date(models.Payment.payment_date) == day
+            ).scalar() or 0
+            
+            weekly.append({
+                "label": day.strftime("%a"), # Contoh: Mon, Tue
+                "amount": int(day_income)
+            })
 
-    expenses = db.query(models.Expense).all()
+        # 4. Omzet Bulanan
+        monthly = []
+        for i in range(3, -1, -1):
+            week_start = today - timedelta(weeks=i + 1)
+            week_end   = today - timedelta(weeks=i)
+            
+            # Perbaikan: Bandingkan objek tanggal langsung, jangan diconvert ke string
+            week_income = db.query(func.sum(models.Payment.amount_paid)).filter(
+                models.Payment.payment_status == "paid",
+                models.Payment.payment_date >= week_start,
+                models.Payment.payment_date <= week_end
+            ).scalar() or 0
+            
+            monthly.append({
+                "label": f"W{4 - i}",
+                "amount": int(week_income)
+            })
 
-    total_expense = sum(expense.amount for expense in expenses)
+        # 5. Return Data (Pastikan semua angka di-cast ke INT agar Android GSON tidak error)
+        return {
+            "active_orders": int(active_orders),
+            "done_orders": int(done_orders),
+            "taken_orders": int(taken_orders),
+            "total_orders": int(total_orders),
+            "total_income": int(total_income),
+            "total_expense": int(total_expense),
+            "total_profit": int(total_income - total_expense),
+            "weekly_income": weekly,
+            "monthly_income": monthly,
+        }
 
-    # ==========================
-    # TOTAL PROFIT
-    # ==========================
-
-    total_profit = total_income - total_expense
-
-    return {
-        "total_orders": total_orders,
-        "active_orders": active_orders,
-        "total_income": total_income,
-        "total_expense": total_expense,
-        "total_profit": total_profit
-    }
+    except Exception as e:
+        # Jika ada error, akan muncul di terminal Python kamu
+        print(f"Error pada get_dashboard_stats: {str(e)}")
+        # Melempar error agar kita tahu masalahnya apa
+        raise e
