@@ -93,7 +93,6 @@ class CategoryOut(CategoryBase):
 # =========================
 
 class ServiceBase(BaseModel):
-    category_id: int
     service_name: str = Field(..., min_length=3, max_length=100)
     price_per_kg: int = Field(..., gt=0)
     estimated_days: int = Field(..., gt=0)

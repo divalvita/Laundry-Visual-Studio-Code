@@ -228,21 +228,9 @@ def get_service_by_id(db: Session, service_id: int):
         models.Service.id == service_id
     ).first()
 
-
 def create_service(db: Session, service: schemas.ServiceCreate):
 
-    category = db.query(models.Category).filter(
-        models.Category.id == service.category_id
-    ).first()
-
-    if not category:
-        raise HTTPException(
-            status_code=404,
-            detail="Category tidak ditemukan"
-        )
-
     db_service = models.Service(
-        category_id=service.category_id,
         service_name=service.service_name,
         price_per_kg=service.price_per_kg,
         estimated_days=service.estimated_days,
@@ -255,7 +243,6 @@ def create_service(db: Session, service: schemas.ServiceCreate):
 
     return db_service
 
-
 def update_service(db: Session, service_id: int, service: schemas.ServiceCreate):
 
     db_service = get_service_by_id(db, service_id)
@@ -266,7 +253,6 @@ def update_service(db: Session, service_id: int, service: schemas.ServiceCreate)
             detail="Service tidak ditemukan"
         )
 
-    db_service.category_id = service.category_id
     db_service.service_name = service.service_name
     db_service.price_per_kg = service.price_per_kg
     db_service.estimated_days = service.estimated_days
