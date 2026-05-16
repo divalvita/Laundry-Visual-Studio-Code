@@ -1,17 +1,25 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
+from typing import List
 
 
 # =========================================
 # DASHBOARD SCHEMA
 # =========================================
+class WeeklyIncome(BaseModel):
+    label: str
+    amount: int
 
 class DashboardStats(BaseModel):
-    total_orders: int
-    active_orders: int
-    total_income: int
-    total_expense: int
-    total_profit: int
+    active_orders:  int
+    done_orders:    int
+    taken_orders:   int
+    total_orders:   int
+    total_income:   int
+    total_expense:  int
+    total_profit:   int
+    weekly_income:  List[WeeklyIncome]
+    monthly_income: List[WeeklyIncome]
 
     
 # =========================
@@ -85,7 +93,6 @@ class CategoryOut(CategoryBase):
 # =========================
 
 class ServiceBase(BaseModel):
-    category_id: int
     service_name: str = Field(..., min_length=3, max_length=100)
     price_per_kg: int = Field(..., gt=0)
     estimated_days: int = Field(..., gt=0)

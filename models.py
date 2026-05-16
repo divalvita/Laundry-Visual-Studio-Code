@@ -33,19 +33,14 @@ class Category(Base):
     category_name = Column(String(50), nullable=False)
     description = Column(String(255), nullable=True)
 
-    services = relationship("Service", back_populates="category")
-
-
 class Service(Base):
     __tablename__ = "services"
     id = Column(Integer, primary_key=True, index=True)
-    category_id = Column(Integer, ForeignKey("categories.id"))
     service_name = Column(String(100), nullable=False)
     price_per_kg = Column(Integer, nullable=False)
     estimated_days = Column(Integer, nullable=False)
     image_url = Column(String(255), nullable=True)
 
-    category = relationship("Category", back_populates="services")
     orders = relationship("Order", back_populates="service")
 
 
